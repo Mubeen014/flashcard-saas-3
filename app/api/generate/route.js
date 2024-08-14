@@ -32,28 +32,33 @@ export async function POST(req) {
             model: 'llama3-8b-8192',
             stream: false, // Ensure that streaming is disabled if it's not supported
         });
-
+    
         const choices = completion.choices || [];
         if (choices.length === 0) {
             throw new Error('No choices found in API response');
         }
-
+    
         const message = choices[0].message;
         const messageContent = message?.content;
+    
+        // Log the raw response content
+        console.log('Raw API response content:', messageContent);
+    
         if (!messageContent) {
             throw new Error('No message content found in API response');
         }
-
+    
         let flashcards;
         try {
             const parsed = JSON.parse(messageContent);
             flashcards = parsed.flashcards;
         } catch (parseError) {
+            console.error('Error parsing flashcards JSON:', parseError.message);
             throw new Error('Error parsing flashcards JSON');
         }
-
+    
         return new Response(JSON.stringify({ flashcards }));
-
+    
     } catch (error) {
         console.error('Error generating flashcards:', error);
         return new Response(JSON.stringify({ message: 'Error generating flashcards' }), { status: 500 });
