@@ -7,6 +7,10 @@ export default function FlashPageContent() {
     const [text, setText] = useState('');
     const [flashcards, setFlashcards] = useState([]);
 
+    const saveFlashCard = async () => {
+        
+    };
+
     const handleSubmit = async () => {
       if (!text.trim()) {
           alert('Please enter some text to generate flashcards');
