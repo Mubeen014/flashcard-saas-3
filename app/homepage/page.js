@@ -27,7 +27,7 @@ const Homepage = () => {
       }}
     >
       <Typography variant="h2" sx={{ mb: 2 }}>
-        Welcome to Our App
+        Welcome to Flashcard Maker
       </Typography>
       <Typography variant="h5" sx={{ mb: 4, textAlign: 'center' }}>
         Discover the amazing features and benefits of our app. Get started now and explore what we have to offer!
