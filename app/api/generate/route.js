@@ -42,7 +42,7 @@ export async function POST(req) {
         const messageContent = message?.content;
     
         // Log the raw response content
-        console.log('Raw API response content:', messageContent);
+        // console.log('Raw API response content:', messageContent);
     
         if (!messageContent) {
             throw new Error('No message content found in API response');
