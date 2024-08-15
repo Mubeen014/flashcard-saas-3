@@ -1,7 +1,8 @@
 'use client'
+import  getStripe  from "@/utils/get-stripe";
 import { useState } from "react";
-import getStripe from "@/utils/get-stripe";
 import { Button, Container, Typography } from "@mui/material";
+
 
 export default function Checkout() {
     const [loading, setLoading] = useState(false)

@@ -1,3 +1,4 @@
+import { ClerkProvider, SignedOut, SignInButton, SignUpButton, SignedIn } from "@clerk/nextjs";
 import { Inter } from "next/font/google";
 import "./globals.css";
 
@@ -10,8 +11,20 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
-      <body className={inter.className}>{children}</body>
-    </html>
+    <ClerkProvider>
+      <html lang="en">
+        <body className={inter.className}>
+          <SignedOut>
+            <div style={{ display: "flex", gap: "10px" }}>
+              <SignInButton />
+              <SignUpButton />
+            </div>
+          </SignedOut>
+          <SignedIn>
+            {children}
+          </SignedIn>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }
