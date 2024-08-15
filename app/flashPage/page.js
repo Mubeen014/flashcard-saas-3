@@ -2,8 +2,30 @@
 
 import { Text, Box, Button, Card, CardContent, Container, Typography, TextField } from "@mui/material";
 import { useState } from "react";
+import db from "@/firebaseConfig";
+import { collection, getDoc, addDoc, getDocs } from "firebase/firestore";
+import { useUser } from "@clerk/nextjs";
+
+const saveFlashCard = async (userId, flashcardDataJSON) => {
+  try {
+    if (!userId) {
+      console.error('User is not authenticated');
+      return;
+    }
+
+    // Create a user-specific collection
+    const userCollection = collection(db, `users/${userId}/flashcards`);
+    const docRef = await addDoc(userCollection, flashcardDataJSON);
+
+    console.log('Document written with ID:', docRef.id);
+  } catch (e) {
+    console.error('Error saving flashcards:', e.message);
+  }
+};
 
 export default function FlashPageContent() {
+  const { user } = useUser();
+  const userId = user?.id;
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
@@ -26,9 +48,12 @@ export default function FlashPageContent() {
   const [text, setText] = useState('');
   const [flashcards, setFlashcards] = useState([]);
 
-  const saveFlashCard = async () => {
-      
-  };
+
+  
+
+  const handleSaveFlashcard = (flashcardDataJSON) => {
+    saveFlashCard(userId, flashcardDataJSON);
+  }
 
   const handleSubmit = async () => {
     if (!text.trim()) {
@@ -68,7 +93,6 @@ export default function FlashPageContent() {
                 onChange={(e) => setText(e.target.value)}
                 label='Enter text'
                 fullWidth
-                fullHeight
                 multiline
                 rows={4}
                 variant="outlined"
@@ -112,6 +136,13 @@ export default function FlashPageContent() {
             ) : (
               <Typography variant="body1">No flashcards generated yet.</Typography>
             )}
+          </Box>
+          <Box>
+            <Button
+            onClick={() => handleSaveFlashcard({flashcards})}
+            >
+              Save Flashcard
+            </Button>
           </Box>
       </Container>
   );
