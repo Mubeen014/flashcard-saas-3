@@ -1,6 +1,33 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 * {
   box-sizing: border-box;
   padding: 0;
   margin: 0;
+}
+
+/* Global CSS */
+
+@keyframes gradientAnimation {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.bg-animated-gradient {
+  background: linear-gradient(270deg, #161D6F, #687EFF, #98DED9);
+  background-size: 600% 600%;
+  animation: gradientAnimation 15s ease infinite;
+}
+
+.text-shadow-lg {
+  text-shadow: 2px 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+.flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }

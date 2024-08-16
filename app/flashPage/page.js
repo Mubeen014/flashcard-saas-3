@@ -1,10 +1,11 @@
 'use client'
 
-import { Text, Box, Button, Card, CardContent, Container, Typography, TextField } from "@mui/material";
 import { useState } from "react";
-import db from "@/firebaseConfig";
-import { collection, getDoc, addDoc, getDocs } from "firebase/firestore";
 import { useUser } from "@clerk/nextjs";
+import { Box, Button, Typography, TextField, Card, CardContent, Container } from "@mui/material";
+import { motion } from 'framer-motion';
+import db from "@/firebaseConfig";
+import { collection, addDoc } from "firebase/firestore";
 
 const saveFlashCard = async (userId, flashcardDataJSON) => {
   try {
@@ -29,10 +30,12 @@ export default function FlashPageContent() {
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
+  const [text, setText] = useState('');
+  const [flashcards, setFlashcards] = useState([]);
 
   const handleNext = () => {
     setIsFlipped(false);
-    setCurrentIndex((prevIndex) => Math.min(prevIndex + 1, flashcards.length - 1))
+    setCurrentIndex((prevIndex) => Math.min(prevIndex + 1, flashcards.length - 1));
   };
 
   const handlePrevious = () => {
@@ -44,16 +47,9 @@ export default function FlashPageContent() {
     setIsFlipped((prev) => !prev);
   };
 
-
-  const [text, setText] = useState('');
-  const [flashcards, setFlashcards] = useState([]);
-
-
-  
-
   const handleSaveFlashcard = (flashcardDataJSON) => {
     saveFlashCard(userId, flashcardDataJSON);
-  }
+  };
 
   const handleSubmit = async () => {
     if (!text.trim()) {
@@ -80,70 +76,68 @@ export default function FlashPageContent() {
   };  
 
   return (
-      <Container maxWidth='md'>
-          <Box sx={{
-            my: 4,
-            height: 200,
-            }}>
-            <Typography variant="h4" gutterBottom>
-                Generate Flashcards
-            </Typography>
-            <TextField
-                value={text}
-                onChange={(e) => setText(e.target.value)}
-                label='Enter text'
-                fullWidth
-                multiline
-                rows={4}
-                variant="outlined"
-                sx={{ mb: 2 }}
-            />
-            <Button
-                variant="contained"
-                color="primary"
-                onClick={handleSubmit}
-                fullWidth
-            >
-                Generate Flashcards
-            </Button>
-          </Box>
-          <Box sx={{ display: 'fixed',
-            alignItems: 'center',
-            bgcolor:'background.paper',
-            mt: 10,
-            position: 'fixed',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            padding: 2,
-            boxShadow: 3,
-            zIndex: 2000,
-            marginTop: 20,
-            }}>
-            {flashcards.length > 0 ? (
-              <Card sx={{ maxWidth: 400, textAlign: 'center' }}>
-                <CardContent>
-                  <Typography variant="h6" gutterBottom>
-                    {isFlipped ? `${flashcards[currentIndex].back}` : `${flashcards[currentIndex].front}`}
-                  </Typography>
-                </CardContent>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', px: 2, mb: 2 }}>
-                  <Button onClick={handlePrevious} disabled={currentIndex === 0}>Prev</Button>
-                  <Button onClick={handleFlip}>{isFlipped ? 'Show Front' : 'Flip'}</Button>
-                  <Button onClick={handleNext} disabled={currentIndex === flashcards.length - 1}>Next</Button>
-                </Box>
-              </Card>
-            ) : (
-              <Typography variant="body1">No flashcards generated yet.</Typography>
-            )}
-          </Box>
-          <Box>
-            <Button
-            onClick={() => handleSaveFlashcard({flashcards})}
-            >
-              Save Flashcard
-            </Button>
-          </Box>
+    <div className="bg-animated-gradient text-white min-h-screen flex flex-col items-center justify-center py-10 px-4 sm:px-6 lg:px-8">
+      <Container maxWidth="md" className="text-center mb-8">
+        <Typography variant="h4" className="text-4xl sm:text-5xl font-bold mb-6">
+          Generate Flashcards
+        </Typography>
+        <TextField
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          label='Enter text'
+          fullWidth
+          multiline
+          rows={4}
+          variant="outlined"
+          className="bg-white text-[#161D6F] rounded-lg shadow-md border-[#98DED9] focus:outline-none focus:ring-2 focus:ring-[#98DED9] transition-all duration-300 ease-in-out mb-6"
+        />
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={handleSubmit}
+          className="bg-gradient-to-r from-[#98DED9] to-[#687EFF] text-white py-2 px-6 rounded-lg shadow-md transition-transform duration-300 ease-in-out hover:scale-105"
+        >
+          Generate Flashcards
+        </Button>
       </Container>
+      <Box className="flex flex-col items-center mb-8 space-y-6">
+        {flashcards.length > 0 ? (
+          <motion.div
+            className="relative bg-white text-[#161D6F] p-6 rounded-lg shadow-lg max-w-lg w-full"
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: 'easeOut' }}
+            whileHover={{ scale: 1.05 }}
+          >
+            <CardContent className="text-center">
+              <Typography variant="h6" className="text-xl font-semibold mb-4">
+                {isFlipped ? `${flashcards[currentIndex].back}` : `${flashcards[currentIndex].front}`}
+              </Typography>
+            </CardContent>
+            <Box className="flex justify-between px-4 mb-4 space-x-4">
+              <Button onClick={handlePrevious} disabled={currentIndex === 0} className="bg-[#98DED9] text-white hover:bg-[#687EFF] transition duration-300 ease-in-out px-4 py-2 rounded-lg">
+                Prev
+              </Button>
+              <Button onClick={handleFlip} className="bg-[#687EFF] text-white hover:bg-[#161D6F] transition duration-300 ease-in-out px-4 py-2 rounded-lg">
+                {isFlipped ? 'Show Front' : 'Flip'}
+              </Button>
+              <Button onClick={handleNext} disabled={currentIndex === flashcards.length - 1} className="bg-[#98DED9] text-white hover:bg-[#687EFF] transition duration-300 ease-in-out px-4 py-2 rounded-lg">
+                Next
+              </Button>
+            </Box>
+          </motion.div>
+        ) : (
+          <Typography variant="body1" className="text-center">No flashcards generated yet.</Typography>
+        )}
+      </Box>
+      <Box className="text-center">
+        <Button
+          onClick={() => handleSaveFlashcard({ flashcards })}
+          className="bg-gradient-to-r from-[#98DED9] to-[#687EFF] text-white py-2 px-6 rounded-lg shadow-md transition-transform duration-300 ease-in-out hover:scale-105"
+        >
+          Save Flashcard
+        </Button>
+      </Box>
+    </div>
   );
 }
