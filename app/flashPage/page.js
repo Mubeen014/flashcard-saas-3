@@ -1,11 +1,40 @@
 'use client'
 
+import { Box, Button,AppBar, Card, Toolbar, Divider, CardContent, Container, Typography, TextField } from "@mui/material";
 import { useState } from "react";
-import { useUser } from "@clerk/nextjs";
-import { Box, Button, Typography, TextField, Card, CardContent, Container } from "@mui/material";
-import { motion } from 'framer-motion';
 import db from "@/firebaseConfig";
 import { collection, addDoc } from "firebase/firestore";
+import { useUser } from "@clerk/nextjs";
+import { createTheme, ThemeProvider } from '@mui/material/styles';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import { motion } from 'framer-motion';
+import { useRouter } from 'next/navigation';
+
+// Create a dark blue theme
+const darkBlueTheme = createTheme({
+  palette: {
+    mode: 'dark',
+    primary: {
+      main: '#90caf9',
+    },
+    background: {
+      default: '#0a192f',
+      paper: '#1e3a8a',
+    },
+  },
+});
+// Animated button component
+const AnimatedButton = ({ children, ...props }) => (
+  <motion.div
+    whileHover={{ scale: 1.05 }}
+    whileTap={{ scale: 0.95 }}
+  >
+    <Button {...props}>
+      {children}
+    </Button>
+  </motion.div>
+);
 
 const saveFlashCard = async (userId, flashcardDataJSON) => {
   try {
@@ -15,7 +44,7 @@ const saveFlashCard = async (userId, flashcardDataJSON) => {
     }
 
     // Create a user-specific collection
-    const userCollection = collection(db, `users/${userId}/flashcards`);
+    const userCollection = collection(db, 'users/${userId}/flashcards');
     const docRef = await addDoc(userCollection, flashcardDataJSON);
 
     console.log('Document written with ID:', docRef.id);
@@ -25,17 +54,17 @@ const saveFlashCard = async (userId, flashcardDataJSON) => {
 };
 
 export default function FlashPageContent() {
+  // ... (keep all the existing state and functions)
+
   const { user } = useUser();
   const userId = user?.id;
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
-  const [text, setText] = useState('');
-  const [flashcards, setFlashcards] = useState([]);
 
   const handleNext = () => {
     setIsFlipped(false);
-    setCurrentIndex((prevIndex) => Math.min(prevIndex + 1, flashcards.length - 1));
+    setCurrentIndex((prevIndex) => Math.min(prevIndex + 1, flashcards.length - 1))
   };
 
   const handlePrevious = () => {
@@ -44,12 +73,20 @@ export default function FlashPageContent() {
   };
 
   const handleFlip = () => {
+    event.stopPropagation();
     setIsFlipped((prev) => !prev);
   };
 
+
+  const [text, setText] = useState('');
+  const [flashcards, setFlashcards] = useState([]);
+
+
+  
+
   const handleSaveFlashcard = (flashcardDataJSON) => {
     saveFlashCard(userId, flashcardDataJSON);
-  };
+  }
 
   const handleSubmit = async () => {
     if (!text.trim()) {
@@ -74,70 +111,123 @@ export default function FlashPageContent() {
         alert('Unexpected response format');
     }
   };  
+  const router = useRouter();
+  const handleClick = (path) => {
+    router.push(path);
+  }
+  
 
   return (
-    <div className="bg-animated-gradient text-white min-h-screen flex flex-col items-center justify-center py-10 px-4 sm:px-6 lg:px-8">
-      <Container maxWidth="md" className="text-center mb-8">
-        <Typography variant="h4" className="text-4xl sm:text-5xl font-bold mb-6">
-          Generate Flashcards
-        </Typography>
-        <TextField
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          label='Enter text'
-          fullWidth
-          multiline
-          rows={4}
-          variant="outlined"
-          className="bg-white text-[#161D6F] rounded-lg shadow-md border-[#98DED9] focus:outline-none focus:ring-2 focus:ring-[#98DED9] transition-all duration-300 ease-in-out mb-6"
-        />
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={handleSubmit}
-          className="bg-gradient-to-r from-[#98DED9] to-[#687EFF] text-white py-2 px-6 rounded-lg shadow-md transition-transform duration-300 ease-in-out hover:scale-105"
-        >
-          Generate Flashcards
-        </Button>
-      </Container>
-      <Box className="flex flex-col items-center mb-8 space-y-6">
-        {flashcards.length > 0 ? (
-          <motion.div
-            className="relative bg-white text-[#161D6F] p-6 rounded-lg shadow-lg max-w-lg w-full"
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: 'easeOut' }}
-            whileHover={{ scale: 1.05 }}
-          >
-            <CardContent className="text-center">
-              <Typography variant="h6" className="text-xl font-semibold mb-4">
-                {isFlipped ? `${flashcards[currentIndex].back}` : `${flashcards[currentIndex].front}`}
+    <ThemeProvider theme={darkBlueTheme}>
+      <Box sx={{ bgcolor: 'background.default', color: 'text.primary', minHeight: '100vh' }}>
+      <AppBar position="static" color="transparent">
+          <Toolbar>
+            <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+              FlashMind
+            </Typography>
+            
+          </Toolbar>
+        </AppBar>
+      <Container maxWidth='md' sx={{ height: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+        <Card sx={{ bgcolor: 'background.paper', borderRadius: 4 }}>
+          <CardContent>
+            <Typography variant="h4" gutterBottom align="center">
+              Flashcards 
+            </Typography>
+            <Box onClick={handleFlip} // Add onClick handler here
+             sx={{ 
+              bgcolor: 'background.default', 
+              height: 200, 
+              borderRadius: 2, 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              mb: 2,
+              cursor: 'pointer', // Add cursor style to indicate it's clickable
+              transition: 'transform 0.6s',
+              transformStyle: 'preserve-3d',
+              transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
+            }}>
+              <Typography 
+                variant="body1" 
+                sx={{
+                  backfaceVisibility: 'hidden',
+                  position: 'absolute',
+                  width: '100%',
+                  height: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
+                }}
+              >
+              {flashcards.length > 0 ? (
+                <Typography variant="body1">
+                  {isFlipped ? flashcards[currentIndex].back : flashcards[currentIndex].front}
+                </Typography>
+              ) : (
+                <Typography variant="body1">
+                  No flashcards generated yet. Enter text and click "Generate Flashcards".
+                </Typography>
+              )}
               </Typography>
-            </CardContent>
-            <Box className="flex justify-between px-4 mb-4 space-x-4">
-              <Button onClick={handlePrevious} disabled={currentIndex === 0} className="bg-[#98DED9] text-white hover:bg-[#687EFF] transition duration-300 ease-in-out px-4 py-2 rounded-lg">
-                Prev
-              </Button>
-              <Button onClick={handleFlip} className="bg-[#687EFF] text-white hover:bg-[#161D6F] transition duration-300 ease-in-out px-4 py-2 rounded-lg">
-                {isFlipped ? 'Show Front' : 'Flip'}
-              </Button>
-              <Button onClick={handleNext} disabled={currentIndex === flashcards.length - 1} className="bg-[#98DED9] text-white hover:bg-[#687EFF] transition duration-300 ease-in-out px-4 py-2 rounded-lg">
-                Next
-              </Button>
             </Box>
-          </motion.div>
-        ) : (
-          <Typography variant="body1" className="text-center">No flashcards generated yet.</Typography>
-        )}
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+              <Typography variant="body1" gutterBottom>
+                Click Card to Flip
+              </Typography>
+              <Box>
+                <Button startIcon={<ArrowBackIcon />} onClick={handlePrevious} disabled={currentIndex === 0}>
+                  
+                </Button>
+                <Button endIcon={<ArrowForwardIcon />} onClick={handleNext} disabled={currentIndex === flashcards.length - 1}>
+                  
+                </Button>
+              </Box>
+            </Box>
+            <Typography variant="body1" gutterBottom>
+              Enter text:
+            </Typography>
+            <TextField
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              placeholder='Enter text to generate flashcards'
+              fullWidth
+              multiline
+              rows={4}
+              variant="outlined"
+              sx={{ mb: 2 }}
+            />
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleSubmit}
+              fullWidth
+            >
+              Generate Flashcards
+            </Button>
+            <Button
+              onClick={() => handleSaveFlashcard({flashcards})}
+              fullWidth
+              sx={{ mt: 2 }}
+            >
+              Save Flashcard
+            </Button>
+          </CardContent>
+        </Card>
+      </Container>
+      <Divider sx={{ my: 4 }} />
+
+            {/* Footer */}
+            <Box component="footer" sx={{ textAlign: 'center', pt: 2, pb:3 }}>
+              <Typography variant="body2">
+                &copy; {new Date().getFullYear()} FlashMind. All rights reserved.
+              </Typography>
+              <Typography variant="body2">
+                Contact us: info@flashmind.com
+              </Typography>
+            </Box>
       </Box>
-      <Box className="text-center">
-        <Button
-          onClick={() => handleSaveFlashcard({ flashcards })}
-          className="bg-gradient-to-r from-[#98DED9] to-[#687EFF] text-white py-2 px-6 rounded-lg shadow-md transition-transform duration-300 ease-in-out hover:scale-105"
-        >
-          Save Flashcard
-        </Button>
-      </Box>
-    </div>
+    </ThemeProvider>
   );
 }

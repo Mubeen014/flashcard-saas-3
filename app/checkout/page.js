@@ -1,8 +1,8 @@
 'use client'
 import  getStripe  from "@/utils/get-stripe";
 import { useState } from "react";
-import { Button, Container, Typography } from "@mui/material";
-
+import { Button,Box, Container, Typography } from "@mui/material";
+import { createTheme, ThemeProvider } from '@mui/material/styles';
 
 export default function Checkout() {
     const [loading, setLoading] = useState(false)
@@ -52,10 +52,25 @@ export default function Checkout() {
         }
       };
       
+      // Create a dark blue theme
+const darkBlueTheme = createTheme({
+  palette: {
+    mode: 'dark',
+    primary: {
+      main: '#90caf9',
+    },
+    background: {
+      default: '#0a192f',
+      paper: '#1e3a8a',
+    },
+  },
+});
       
     return (
-        <Container>
-            <Typography variant="h4" gutterBottom>Checkout</Typography>
+      <ThemeProvider theme={darkBlueTheme}>
+        <Box sx={{ bgcolor: 'background.default', color: 'text.primary', minHeight: '100vh' }}>
+                <Container  maxWidth='md' sx={{ height: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+            <Typography variant="h4" gutterBottom align="center" sx={{mb:20}}>Checkout</Typography>
             <Button
             variant="contained"
             color="primary"
@@ -65,5 +80,7 @@ export default function Checkout() {
                 {loading ? 'Processing...' : 'Pay wtih stripe'}
             </Button>
         </Container>
+        </Box>
+        </ThemeProvider>
     )
 }
