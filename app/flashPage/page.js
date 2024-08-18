@@ -11,6 +11,24 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 
+const DotIndicator = ({ total, active }) => (
+  <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+    {[...Array(total)].map((_, index) => (
+      <Box
+        key={index}
+        sx={{
+          width: index === active ? 20 : 8,
+          height: 8,
+          borderRadius: 4,
+          bgcolor: index === active ? 'primary.main' : 'grey.500',
+          mx: 0.5,
+          transition: 'all 0.3s ease',
+        }}
+      />
+    ))}
+  </Box>
+);
+
 // Create a dark blue theme
 const darkBlueTheme = createTheme({
   palette: {
@@ -128,14 +146,14 @@ export default function FlashPageContent() {
             
           </Toolbar>
         </AppBar>
-      <Container maxWidth='md' sx={{ height: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-        <Card sx={{ bgcolor: 'background.paper', borderRadius: 4 }}>
-          <CardContent>
-            <Typography variant="h4" gutterBottom align="center">
-              Flashcards 
-            </Typography>
-            <Box onClick={handleFlip} // Add onClick handler here
-             sx={{ 
+        <Container maxWidth='md' sx={{ height: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+          <Card sx={{ bgcolor: 'background.paper', borderRadius: 4 }}>
+            <CardContent>
+              <Typography variant="h4" gutterBottom align="center">
+                Flashcards 
+              </Typography>
+              <Box onClick={handleFlip} 
+                sx={{ 
               bgcolor: 'background.default', 
               height: 200, 
               borderRadius: 2, 
@@ -148,9 +166,9 @@ export default function FlashPageContent() {
               transformStyle: 'preserve-3d',
               transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
             }}>
-              <Typography 
-                variant="body1" 
-                sx={{
+            <Typography 
+              variant="body1" 
+              sx={{
                   backfaceVisibility: 'hidden',
                   position: 'absolute',
                   width: '100%',
@@ -172,19 +190,22 @@ export default function FlashPageContent() {
               )}
               </Typography>
             </Box>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-              <Typography variant="body1" gutterBottom>
-                Click Card to Flip
-              </Typography>
-              <Box>
-                <Button startIcon={<ArrowBackIcon />} onClick={handlePrevious} disabled={currentIndex === 0}>
-                  
-                </Button>
-                <Button endIcon={<ArrowForwardIcon />} onClick={handleNext} disabled={currentIndex === flashcards.length - 1}>
-                  
-                </Button>
+            {flashcards.length > 0 && (
+                <DotIndicator total={flashcards.length} active={currentIndex} />
+              )}
+             <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2, mt: 2 }}>
+                <Typography variant="body1" gutterBottom>
+                  Click Card to Flip
+                </Typography>
+                <Box>
+                  <Button startIcon={<ArrowBackIcon />} onClick={handlePrevious} disabled={currentIndex === 0}>
+                    Prev
+                  </Button>
+                  <Button endIcon={<ArrowForwardIcon />} onClick={handleNext} disabled={currentIndex === flashcards.length - 1}>
+                    Next
+                  </Button>
+                </Box>
               </Box>
-            </Box>
             <Typography variant="body1" gutterBottom>
               Enter text:
             </Typography>
