@@ -49,7 +49,8 @@ const Homepage = () => {
           className="relative bg-[#f5f5f5] text-black p-5 rounded-lg shadow-lg w-72 h-40 transition duration-300 ease-in-out transform"
         >
           <h3 className="text-xl font-semibold mb-3">Create an account to get started</h3>
-          <button className="bg-[#687EFF] text-white py-2 px-4 rounded-lg hover:bg-[#161D6F] transition duration-300 ease-in-out flex items-center">
+          <button className="bg-[#687EFF] text-white py-2 px-4 rounded-lg hover:bg-[#161D6F] transition duration-300 ease-in-out flex items-center"
+          onClick={() => handleClick('/signup')}>
             Sign Up <FaArrowRight className="ml-2" />
           </button>
         </motion.div>
