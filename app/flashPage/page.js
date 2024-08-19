@@ -1,26 +1,68 @@
-'use client'
+'use client';
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useUser } from "@clerk/nextjs";
-import { Box, Button, Typography, TextField, Card, CardContent, Container } from "@mui/material";
+import { Box, Button, Typography, TextField, CardContent, Container, List, ListItem, ListItemText, IconButton } from "@mui/material";
 import { motion } from 'framer-motion';
 import db from "@/firebaseConfig";
-import { collection, addDoc } from "firebase/firestore";
+import { collection, addDoc, getDocs, deleteDoc, doc } from "firebase/firestore";
 
-const saveFlashCard = async (userId, flashcardDataJSON) => {
+const saveFlashCard = async (userId, flashcardDataJSON, flashcardName) => {
   try {
     if (!userId) {
       console.error('User is not authenticated');
       return;
     }
 
-    // Create a user-specific collection
+    if (!flashcardName.trim()) {
+      console.error('Flashcard name is required');
+      return;
+    }
+
     const userCollection = collection(db, `users/${userId}/flashcards`);
-    const docRef = await addDoc(userCollection, flashcardDataJSON);
+    const flashcardDataWithName = { name: flashcardName, ...flashcardDataJSON };
+    const docRef = await addDoc(userCollection, flashcardDataWithName);
 
     console.log('Document written with ID:', docRef.id);
   } catch (e) {
     console.error('Error saving flashcards:', e.message);
+  }
+};
+
+const getFlashcards = async (userId) => {
+  try {
+    if (!userId) {
+      console.error('User is not authenticated');
+      return;
+    }
+
+    const userCollection = collection(db, `users/${userId}/flashcards`);
+    const querySnapshot = await getDocs(userCollection);
+
+    const flashcards = querySnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+
+    return flashcards;
+  } catch (e) {
+    console.error('Error retrieving flashcards:', e.message);
+    return [];
+  }
+};
+
+const deleteFlashcard = async (userId, flashcardId) => {
+  try {
+    if (!userId) {
+      console.error('User is not authenticated');
+      return;
+    }
+
+    const flashcardRef = doc(db, `users/${userId}/flashcards`, flashcardId);
+    await deleteDoc(flashcardRef);
+    console.log('Flashcard deleted successfully');
+  } catch (error) {
+    console.error('Error deleting flashcard:', error.message);
   }
 };
 
@@ -32,6 +74,9 @@ export default function FlashPageContent() {
   const [isFlipped, setIsFlipped] = useState(false);
   const [text, setText] = useState('');
   const [flashcards, setFlashcards] = useState([]);
+  const [flashcardList, setFlashcardList] = useState([]);
+  const [selectedFlashcard, setSelectedFlashcard] = useState(null);
+  const [savedFlashcards, setSavedFlashcards] = useState([]);
 
   const handleNext = () => {
     setIsFlipped(false);
@@ -47,33 +92,52 @@ export default function FlashPageContent() {
     setIsFlipped((prev) => !prev);
   };
 
-  const handleSaveFlashcard = (flashcardDataJSON) => {
-    saveFlashCard(userId, flashcardDataJSON);
+  const handleSaveFlashcard = async (flashcardDataJSON) => {
+    const flashcardName = prompt('Enter a name for your flashcard:');
+    await saveFlashCard(userId, flashcardDataJSON, flashcardName);
+    await fetchFlashcards(); // Refresh the list after saving
+  };
+
+  const fetchFlashcards = async () => {
+    const flashcards = await getFlashcards(userId);
+    setFlashcardList(flashcards);
+  };
+
+  const handleFlashcardClick = (flashcard) => {
+    setFlashcards(flashcard.flashcards);
+    setCurrentIndex(0);
+    setIsFlipped(false);
+    setSelectedFlashcard(flashcard);
+  };
+
+  const handleDeleteFlashcard = async (flashcardId) => {
+    await deleteFlashcard(userId, flashcardId);
+    setSavedFlashcards(prevFlashcards => prevFlashcards.filter(f => f.id !== flashcardId));
   };
 
   const handleSubmit = async () => {
     if (!text.trim()) {
-        alert('Please enter some text to generate flashcards');
-        return;
+      alert('Please enter some text to generate flashcards');
+      return;
     }
 
     const response = await fetch('/api/generate', {
-        method: 'POST',
-        body: text,
+      method: 'POST',
+      body: text,
     });
 
     const data = await response.json();
 
-    // Log the data to inspect its structure
-    console.log('API response:', data);
-
-    // Ensure the data is in the expected format
     if (Array.isArray(data.flashcards)) {
-        setFlashcards(data.flashcards);
+      setFlashcards(data.flashcards);
     } else {
-        alert('Unexpected response format');
+      alert('Unexpected response format');
     }
-  };  
+  };
+
+  useEffect(() => {
+    fetchFlashcards();
+  }, [userId]);
 
   return (
     <div className="bg-animated-gradient text-white min-h-screen flex flex-col items-center justify-center py-10 px-4 sm:px-6 lg:px-8">
@@ -130,7 +194,7 @@ export default function FlashPageContent() {
           <Typography variant="body1" className="text-center">No flashcards generated yet.</Typography>
         )}
       </Box>
-      <Box className="text-center">
+      <Box className="text-center mb-8">
         <Button
           onClick={() => handleSaveFlashcard({ flashcards })}
           className="bg-gradient-to-r from-[#98DED9] to-[#687EFF] text-white py-2 px-6 rounded-lg shadow-md transition-transform duration-300 ease-in-out hover:scale-105"
@@ -138,6 +202,17 @@ export default function FlashPageContent() {
           Save Flashcard
         </Button>
       </Box>
+      <Container maxWidth="md">
+        <Typography variant="h5" className="mb-4">Your Flashcards</Typography>
+        <List>
+          {flashcardList.map((flashcard) => (
+            <ListItem key={flashcard.id} button onClick={() => handleFlashcardClick(flashcard)}>
+              <ListItemText primary={flashcard.name} />
+              <IconButton edge="end" aria-label="delete" onClick={() => handleDeleteFlashcard(flashcard.id)}/>
+            </ListItem>
+          ))}
+        </List>
+      </Container>
     </div>
   );
 }
